@@ -1,20 +1,20 @@
-from models.product import Product
+from persistencia.db import get_conn
 
-products_db = {}
+def listar_productos():
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM products")
+        return cur.fetchall()
 
-def get_all_products():
-    return list(products_db.values())
+def obtener_producto(product_id):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+        return cur.fetchone()
 
-def get_product(product_id: int):
-    return products_db.get(product_id)
-
-def add_product(product: Product):
-    products_db[product.id] = product
-    return product
-
-def update_product(product_id: int, product: Product):
-    products_db[product_id] = product
-    return product
-
-def delete_product(product_id: int):
-    return products_db.pop(product_id, None)
+def crear_producto(product):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO products (name, price, stock) VALUES (%s, %s, %s) RETURNING *",
+            (product["name"], product["price"], product["stock"])
+        )
+        conn.commit()
+        return cur.fetchone()

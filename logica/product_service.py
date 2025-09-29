@@ -1,21 +1,12 @@
-from models.product import Product
-from persistencia.product_repo import (
-    get_all_products, get_product, add_product, update_product, delete_product
-)
-from sqlalchemy.orm import Session
+from persistencia.product_repo import listar_productos, obtener_producto, crear_producto
 
-def listar_productos(db: Session):
-    return get_all_products(db)
+def obtener_todos_productos():
+    return listar_productos()
 
-def obtener_producto(db: Session, product_id: int):
-    return get_product(db, product_id)
+def obtener_un_producto(product_id):
+    return obtener_producto(product_id)
 
-def crear_producto(db: Session, product_data: dict):
-    product = Product(**product_data)
-    return add_product(db, product)
-
-def actualizar_producto(db: Session, product_id: int, data: dict):
-    return update_product(db, product_id, data)
-
-def eliminar_producto(db: Session, product_id: int):
-    return delete_product(db, product_id)
+def agregar_producto(product):
+    if product["stock"] < 0:
+        raise ValueError("El stock no puede ser negativo")
+    return crear_producto(product)

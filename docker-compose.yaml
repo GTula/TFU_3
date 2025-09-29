@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "8040:8040"
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/ecommerce
     depends_on:
@@ -16,3 +16,5 @@ services:
       POSTGRES_PASSWORD: pass
     ports:
       - "5432:5432"
+    volumes:
+      - ./persistencia/init.sql:/docker-entrypoint-initdb.d/init.sql

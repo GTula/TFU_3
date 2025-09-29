@@ -1,31 +1,42 @@
-from models.order import Order, OrderItem
-from models.product import Product
-from sqlalchemy.orm import Session
+from persistencia.db import get_conn
 
-def get_all_orders(db: Session):
-    return db.query(Order).all()
+def listar_ordenes():
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM orders")
+        orders = cur.fetchall()
+        for order in orders:
+            cur.execute("SELECT * FROM order_items WHERE order_id = %s", (order["id"],))
+            order["items"] = cur.fetchall()
+        return orders
 
-def get_order(db: Session, order_id: int):
-    return db.query(Order).filter(Order.id == order_id).first()
+def obtener_orden(order_id):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM orders WHERE id = %s", (order_id,))
+        ord = cur.fetchone()
+        if ord:
+            cur.execute("SELECT * FROM order_items WHERE order_id = %s", (order_id,))
+            ord["items"] = cur.fetchall()
+        return ord
 
-def add_order(db: Session, order: Order, items: list):
-    db.add(order)
-    db.commit()
-    db.refresh(order)
-    for item in items:
-        order_item = OrderItem(order_id=order.id, product_id=item['product_id'], quantity=item['quantity'])
-        db.add(order_item)
-        # Descontar stock
-        product = db.query(Product).filter(Product.id == item['product_id']).first()
-        if product:
-            product.stock -= item['quantity']
-            db.commit()
-    db.commit()
-    return order
-
-def delete_order(db: Session, order_id: int):
-    order = get_order(db, order_id)
-    if order:
-        db.delete(order)
-        db.commit()
-    return order
+def crear_orden(order):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM clients WHERE id = %s", (order["client_id"],))
+        if not cur.fetchone():
+            return None
+        cur.execute("INSERT INTO orders (client_id) VALUES (%s) RETURNING id", (order["client_id"],))
+        order_id = cur.fetchone()["id"]
+        for item in order["items"]:
+            cur.execute("SELECT * FROM products WHERE id = %s", (item["product_id"],))
+            prod = cur.fetchone()
+            if not prod or prod["stock"] < item["quantity"]:
+                return None
+            cur.execute(
+                "INSERT INTO order_items (order_id, product_id, quantity) VALUES (%s, %s, %s)",
+                (order_id, item["product_id"], item["quantity"])
+            )
+            cur.execute(
+                "UPDATE products SET stock = stock - %s WHERE id = %s",
+                (item["quantity"], item["product_id"])
+            )
+        conn.commit()
+        return {"id": order_id, "client_id": order["client_id"], "items": order["items"]}

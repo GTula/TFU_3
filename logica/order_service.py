@@ -1,19 +1,15 @@
-from models.order import Order
-from persistencia.order_repo import (
-    get_all_orders, get_order, add_order, delete_order
-)
-from sqlalchemy.orm import Session
+from persistencia.order_repo import listar_ordenes, obtener_orden, crear_orden
 
-def listar_ordenes(db: Session):
-    return get_all_orders(db)
+def obtener_todas_ordenes():
+    return listar_ordenes()
 
-def obtener_orden(db: Session, order_id: int):
-    return get_order(db, order_id)
+def obtener_una_orden(order_id):
+    return obtener_orden(order_id)
 
-def crear_orden(db: Session, order_data: dict):
-    items = order_data.pop("items")
-    order = Order(**order_data)
-    return add_order(db, order, items)
-
-def eliminar_orden(db: Session, order_id: int):
-    return delete_order(db, order_id)
+def agregar_orden(order):
+    if not order.get("items"):
+        raise ValueError("La orden debe tener items")
+    resultado = crear_orden(order)
+    if not resultado:
+        raise ValueError("Orden inválida: cliente o productos incorrectos")
+    return resultado

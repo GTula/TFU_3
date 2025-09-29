@@ -1,30 +1,20 @@
-from models.client import Client
-from sqlalchemy.orm import Session
+from persistencia.db import get_conn
 
-def get_all_clients(db: Session):
-    return db.query(Client).all()
+def listar_clientes():
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM clients")
+        return cur.fetchall()
 
-def get_client(db: Session, client_id: int):
-    return db.query(Client).filter(Client.id == client_id).first()
+def obtener_cliente(client_id):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT * FROM clients WHERE id = %s", (client_id,))
+        return cur.fetchone()
 
-def add_client(db: Session, client: Client):
-    db.add(client)
-    db.commit()
-    db.refresh(client)
-    return client
-
-def update_client(db: Session, client_id: int, data: dict):
-    client = get_client(db, client_id)
-    if client:
-        for key, value in data.items():
-            setattr(client, key, value)
-        db.commit()
-        db.refresh(client)
-    return client
-
-def delete_client(db: Session, client_id: int):
-    client = get_client(db, client_id)
-    if client:
-        db.delete(client)
-        db.commit()
-    return client
+def crear_cliente(client):
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO clients (name, email) VALUES (%s, %s) RETURNING *",
+            (client["name"], client["email"])
+        )
+        conn.commit()
+        return cur.fetchone()
