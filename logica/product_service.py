@@ -1,12 +1,20 @@
-from persistencia.product_repo import listar_productos, obtener_producto, crear_producto
+from persistencia.product_repo import ProductoRepo
 
-def obtener_todos_productos():
-    return listar_productos()
+class ProductoService:
+    def __init__(self):
+        self.repo = ProductoRepo()
 
-def obtener_un_producto(product_id):
-    return obtener_producto(product_id)
+    def listarProductos(self):
+        return self.repo.findAll()
 
-def agregar_producto(product):
-    if product["stock"] < 0:
-        raise ValueError("El stock no puede ser negativo")
-    return crear_producto(product)
+    def obtenerProducto(self, producto_id):
+        return self.repo.findById(producto_id)
+
+    def agregarProducto(self, producto_data):
+        return self.repo.save(producto_data)
+
+    def actualizarProducto(self, producto_id, producto_data):
+        return self.repo.update(producto_id, producto_data)
+
+    def eliminarProducto(self, producto_id):
+        return self.repo.delete(producto_id)

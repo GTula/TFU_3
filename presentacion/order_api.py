@@ -1,22 +1,20 @@
 from fastapi import APIRouter, HTTPException
-from logica.order_service import obtener_todas_ordenes, obtener_una_orden, agregar_orden
+from logica.order_service import OrdenService
 
 router = APIRouter()
-
-@router.get("/ordenes")
-def get_ordenes():
-    return obtener_todas_ordenes()
-
-@router.get("/ordenes/{order_id}")
-def get_orden(order_id: int):
-    ord = obtener_una_orden(order_id)
-    if not ord:
-        raise HTTPException(status_code=404, detail="Orden no encontrada")
-    return ord
+service = OrdenService()
 
 @router.post("/ordenes")
-def post_orden(order: dict):
-    try:
-        return agregar_orden(order)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def crear_orden(orden_data: dict):
+    return service.crearOrden(orden_data)
+
+@router.get("/ordenes/{orden_id}")
+def obtener_orden(orden_id: int):
+    result = service.obtenerOrden(orden_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    return result
+
+@router.get("/ordenes")
+def listar_ordenes():
+    return service.listarOrdenes()

@@ -1,22 +1,27 @@
 from fastapi import APIRouter, HTTPException
-from logica.client_service import obtener_todos_clientes, obtener_un_cliente, agregar_cliente
+from logica.client_service import ClienteService
 
 router = APIRouter()
-
-@router.get("/clientes")
-def get_clientes():
-    return obtener_todos_clientes()
-
-@router.get("/clientes/{client_id}")
-def get_cliente(client_id: int):
-    cli = obtener_un_cliente(client_id)
-    if not cli:
-        raise HTTPException(status_code=404, detail="Cliente no encontrado")
-    return cli
+service = ClienteService()
 
 @router.post("/clientes")
-def post_cliente(client: dict):
-    try:
-        return agregar_cliente(client)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def registrar_cliente(cliente_data: dict):
+    return service.registrarCliente(cliente_data)
+
+@router.post("/clientes/login")
+def login_cliente(data: dict):
+    result = service.loginCliente(data["email"], data["password"])
+    if not result:
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    return result
+
+@router.put("/clientes/{cliente_id}")
+def actualizar_cliente(cliente_id: int, cliente_data: dict):
+    return service.actualizarCliente(cliente_id, cliente_data)
+
+@router.get("/clientes/{cliente_id}")
+def obtener_cliente(cliente_id: int):
+    result = service.obtenerCliente(cliente_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    return result

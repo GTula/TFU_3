@@ -1,22 +1,28 @@
 from fastapi import APIRouter, HTTPException
-from logica.product_service import obtener_todos_productos, obtener_un_producto, agregar_producto
+from logica.product_service import ProductoService
 
 router = APIRouter()
+service = ProductoService()
 
 @router.get("/productos")
-def get_productos():
-    return obtener_todos_productos()
+def listar_productos():
+    return service.listarProductos()
 
-@router.get("/productos/{product_id}")
-def get_producto(product_id: int):
-    prod = obtener_un_producto(product_id)
-    if not prod:
+@router.get("/productos/{producto_id}")
+def obtener_producto(producto_id: int):
+    result = service.obtenerProducto(producto_id)
+    if not result:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return prod
+    return result
 
 @router.post("/productos")
-def post_producto(product: dict):
-    try:
-        return agregar_producto(product)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def agregar_producto(producto_data: dict):
+    return service.agregarProducto(producto_data)
+
+@router.put("/productos/{producto_id}")
+def actualizar_producto(producto_id: int, producto_data: dict):
+    return service.actualizarProducto(producto_id, producto_data)
+
+@router.delete("/productos/{producto_id}")
+def eliminar_producto(producto_id: int):
+    return service.eliminarProducto(producto_id)

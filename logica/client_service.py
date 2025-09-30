@@ -1,12 +1,17 @@
-from persistencia.client_repo import listar_clientes, obtener_cliente, crear_cliente
+from persistencia.client_repo import ClienteRepo
 
-def obtener_todos_clientes():
-    return listar_clientes()
+class ClienteService:
+    def __init__(self):
+        self.repo = ClienteRepo()
 
-def obtener_un_cliente(client_id):
-    return obtener_cliente(client_id)
+    def registrarCliente(self, cliente_data):
+        return self.repo.save(cliente_data)
 
-def agregar_cliente(client):
-    if "@" not in client["email"]:
-        raise ValueError("El email no es válido")
-    return crear_cliente(client)
+    def loginCliente(self, email, password):
+        return self.repo.login(email, password)
+
+    def actualizarCliente(self, cliente_id, cliente_data):
+        return self.repo.update(cliente_id, cliente_data)
+
+    def obtenerCliente(self, cliente_id):
+        return self.repo.findById(cliente_id)
