@@ -4,6 +4,11 @@ Demostracion del Patron Circuit Breaker
 Este script muestra como el Circuit Breaker protege contra llamadas
 repetidas a un servicio que esta fallando.
 """
+import sys
+import os
+
+# Esto agrega la carpeta TFU_3 al path de Python
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
 from patrones.circuit_breaker import GestorCircuitBreakers, CircuitBreakerError, EstadoCircuito

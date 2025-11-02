@@ -3,8 +3,10 @@ from presentacion.product_api import router as producto_router
 from presentacion.client_api import router as cliente_router
 from presentacion.order_api import router as orden_router
 from presentacion.proveedor_api import router as proveedor_router
+from presentacion.auth_api import router as auth_router
 from patrones.bulkhead import BulkheadManager
 from patrones.circuit_breaker import GestorCircuitBreakers
+from patrones.gatekeeper import GestorGatekeeper
 
 # Inicializar la aplicación FastAPI
 app = FastAPI(title="E-Commerce API con Patrones de Resiliencia")
@@ -16,7 +18,7 @@ bulkhead_manager = BulkheadManager()
 # Cada servicio tiene su propio pool de threads aislado
 bulkhead_manager.create_bulkhead("productos", max_workers=5, timeout=30)
 bulkhead_manager.create_bulkhead("clientes", max_workers=5, timeout=30)
-bulkhead_manager.create_bulkhead("ordenes", max_workers=3, timeout=45)  # Menos workers, mas timeout
+bulkhead_manager.create_bulkhead("ordenes", max_workers=3, timeout=45)  # Menos workers, más timeout
 bulkhead_manager.create_bulkhead("proveedores", max_workers=4, timeout=30)
 
 # Inicializar el gestor de Circuit Breakers
@@ -36,10 +38,15 @@ circuit_breaker_manager.crear_circuit_breaker(
 
 print("--- Circuit Breakers inicializados ---\n")
 
+# Inicializar el Gatekeeper
+print("--- Inicializando Gatekeeper ---")
+gatekeeper_manager = GestorGatekeeper()
+print("--- Gatekeeper inicializado ---\n")
+
 # Endpoint para monitorear el estado de los bulkheads
 @app.get("/bulkhead/stats")
 def get_bulkhead_stats():
-    """Retorna estadisticas de todos los bulkheads del sistema"""
+    """Retorna estadísticas de todos los bulkheads del sistema"""
     return bulkhead_manager.get_all_stats()
 
 
@@ -51,6 +58,7 @@ def get_circuit_breaker_stats():
 
 
 # Registrar routers
+app.include_router(auth_router)  # Router de autenticacion
 app.include_router(producto_router)
 app.include_router(cliente_router)
 app.include_router(orden_router)
