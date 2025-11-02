@@ -6,8 +6,13 @@ services:
       - "8040:8040"
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/ecommerce
+      - RABBITMQ_URL=amqp://user:pass@rabbitmq:5672/
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     depends_on:
       - db
+      - rabbitmq
+      - consul
   db:
     image: postgres:15
     environment:
@@ -18,3 +23,16 @@ services:
       - "5432:5432"
     volumes:
       - ./persistencia/init.sql:/docker-entrypoint-initdb.d/init.sql
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: pass
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  consul:
+    image: consul:1.15
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"
