@@ -6,7 +6,6 @@ y previene que un servicio sobrecargado afecte a otros.
 """
 
 import time
-import random
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from patrones.bulkhead import BulkheadManager
 
