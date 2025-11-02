@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
+from typing import Optional
 from logica.product_service import ProductoService
 from concurrent.futures import TimeoutError
 from patrones.gatekeeper import validar_autenticacion, validar_admin, ErrorAutenticacion, ErrorAutorizacion
