@@ -2,3 +2,5 @@ fastapi
 uvicorn
 psycopg2-binary
 pika
+python-consul
+requests

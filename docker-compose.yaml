@@ -7,9 +7,12 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/ecommerce
       - RABBITMQ_URL=amqp://user:pass@rabbitmq:5672/
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
     depends_on:
       - db
       - rabbitmq
+      - consul
   db:
     image: postgres:15
     environment:
@@ -28,3 +31,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+  consul:
+    image: consul:1.15
+    command: agent -dev -client=0.0.0.0
+    ports:
+      - "8500:8500"

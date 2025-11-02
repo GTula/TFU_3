@@ -1,11 +1,12 @@
-import os
 import json
 import pika
 from typing import Callable
+from infraestructura.config_store import cfg
 
-RABBIT_URL = os.getenv("RABBITMQ_URL") or os.getenv("RABBIT_URL") or "amqp://user:pass@rabbitmq:5672/"
-ORDER_QUEUE = os.getenv("ORDER_QUEUE", "orders")
-PUBLISHER_HEARTBEAT = int(os.getenv("RABBIT_HEARTBEAT", "600"))
+# Read configuration via central ConfigStore (env > consul > default)
+RABBIT_URL = cfg.get("RABBITMQ_URL", default="amqp://user:pass@rabbitmq:5672/")
+ORDER_QUEUE = cfg.get("ORDER_QUEUE", default="orders")
+PUBLISHER_HEARTBEAT = cfg.get("RABBIT_HEARTBEAT", default=600, as_type=int)
 
 def _connect():
     """Crea una conexión blocking a RabbitMQ."""

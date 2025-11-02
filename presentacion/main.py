@@ -1,25 +1,44 @@
 from fastapi import FastAPI
+from infraestructura.config_store import cfg
 from patrones.bulkhead import BulkheadManager
 from patrones.circuit_breaker import GestorCircuitBreakers
 
 # Inicializar la aplicación FastAPI
 app = FastAPI(title="E-Commerce API con Patrones de Resiliencia")
 
-# Inicializar el gestor de Bulkheads y Circuit Breakers ANTES de importar los routers
+# se inicializa el gestor de Bulkheads y Circuit Breakers antes de importar los routers
 # De este modo, los servicios que se importen (y pidan bulkheads) los encontrarán creados.
 bulkhead_manager = BulkheadManager()
-bulkhead_manager.create_bulkhead("productos", max_workers=5, timeout=30)
-bulkhead_manager.create_bulkhead("clientes", max_workers=5, timeout=30)
-bulkhead_manager.create_bulkhead("ordenes", max_workers=3, timeout=45)
-bulkhead_manager.create_bulkhead("proveedores", max_workers=4, timeout=30)
+
+# bulkhead sizes/timeouts configurables vía ConfigStore (env/Consul)
+bulkhead_manager.create_bulkhead(
+    "productos",
+    max_workers=cfg.get("BULKHEAD_PRODUCTOS_WORKERS", default=5, as_type=int),
+    timeout=cfg.get("BULKHEAD_PRODUCTOS_TIMEOUT", default=30, as_type=int),
+)
+bulkhead_manager.create_bulkhead(
+    "clientes",
+    max_workers=cfg.get("BULKHEAD_CLIENTES_WORKERS", default=5, as_type=int),
+    timeout=cfg.get("BULKHEAD_CLIENTES_TIMEOUT", default=30, as_type=int),
+)
+bulkhead_manager.create_bulkhead(
+    "ordenes",
+    max_workers=cfg.get("BULKHEAD_ORDENES_WORKERS", default=3, as_type=int),
+    timeout=cfg.get("BULKHEAD_ORDENES_TIMEOUT", default=45, as_type=int),
+)
+bulkhead_manager.create_bulkhead(
+    "proveedores",
+    max_workers=cfg.get("BULKHEAD_PROVEEDORES_WORKERS", default=4, as_type=int),
+    timeout=cfg.get("BULKHEAD_PROVEEDORES_TIMEOUT", default=30, as_type=int),
+)
 
 print("\n--- Inicializando Circuit Breakers ---")
 circuit_breaker_manager = GestorCircuitBreakers()
 circuit_breaker_manager.crear_circuit_breaker(
     "servicio_pagos",
-    max_fallos=3,
-    timeout_abierto=60,
-    timeout_semi_abierto=30
+    max_fallos=cfg.get("CB_PAGOS_MAX_FALLOS", default=3, as_type=int),
+    timeout_abierto=cfg.get("CB_PAGOS_TIMEOUT_ABIERTO", default=60, as_type=int),
+    timeout_semi_abierto=cfg.get("CB_PAGOS_TIMEOUT_SEMI", default=30, as_type=int),
 )
 print("--- Circuit Breakers inicializados ---\n")
 
