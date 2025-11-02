@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from infraestructura.config_store import cfg
 from patrones.bulkhead import BulkheadManager
 from patrones.circuit_breaker import GestorCircuitBreakers
+from presentacion.auth_api import router as auth_router
 from patrones.gatekeeper import GestorGatekeeper
 
 # Inicializar la aplicación FastAPI
