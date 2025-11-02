@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+
 from infraestructura.config_store import cfg
 from patrones.bulkhead import BulkheadManager
 from patrones.circuit_breaker import GestorCircuitBreakers
+from patrones.gatekeeper import GestorGatekeeper
 
 # Inicializar la aplicación FastAPI
 app = FastAPI(title="E-Commerce API con Patrones de Resiliencia")
@@ -9,6 +11,7 @@ app = FastAPI(title="E-Commerce API con Patrones de Resiliencia")
 # se inicializa el gestor de Bulkheads y Circuit Breakers antes de importar los routers
 # De este modo, los servicios que se importen (y pidan bulkheads) los encontrarán creados.
 bulkhead_manager = BulkheadManager()
+
 
 # bulkhead sizes/timeouts configurables vía ConfigStore (env/Consul)
 bulkhead_manager.create_bulkhead(
@@ -32,6 +35,7 @@ bulkhead_manager.create_bulkhead(
     timeout=cfg.get("BULKHEAD_PROVEEDORES_TIMEOUT", default=30, as_type=int),
 )
 
+
 print("\n--- Inicializando Circuit Breakers ---")
 circuit_breaker_manager = GestorCircuitBreakers()
 circuit_breaker_manager.crear_circuit_breaker(
@@ -42,9 +46,15 @@ circuit_breaker_manager.crear_circuit_breaker(
 )
 print("--- Circuit Breakers inicializados ---\n")
 
-# Endpoints para monitoreo
+# Inicializar el Gatekeeper
+print("--- Inicializando Gatekeeper ---")
+gatekeeper_manager = GestorGatekeeper()
+print("--- Gatekeeper inicializado ---\n")
+
+# Endpoint para monitorear el estado de los bulkheads
 @app.get("/bulkhead/stats")
 def get_bulkhead_stats():
+    """Retorna estadísticas de todos los bulkheads del sistema"""
     return bulkhead_manager.get_all_stats()
 
 
@@ -58,6 +68,9 @@ from presentacion.client_api import router as cliente_router
 from presentacion.order_api import router as orden_router
 from presentacion.proveedor_api import router as proveedor_router
 
+
+# Registrar routers
+app.include_router(auth_router)  # Router de autenticacion
 app.include_router(producto_router)
 app.include_router(cliente_router)
 app.include_router(orden_router)

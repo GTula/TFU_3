@@ -4,6 +4,11 @@ Ejemplo de Prueba del Patrón Bulkhead
 Este script muestra cómo bulkhead aísla los servicios
 y previene que un servicio sobrecargado afecte a otros.
 """
+import sys
+import os
+
+# Esto agrega la carpeta TFU_3 al path de Python
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
